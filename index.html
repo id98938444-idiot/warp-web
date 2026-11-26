@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<button id="b">Tạo link</button>
+<textarea id="o" rows="8" style="width:100%" readonly></textarea>
+<script>
+b.onclick = async () => {
+  b.disabled = true;
+  o.value = "Đang tạo...";
+  try {
+    const r = await fetch("/api/warp", { method: "POST" });
+    o.value = r.status === 429 ? "Thử lại sau 1 phút" : await r.text();
+  } catch { o.value = "Lỗi mạng"; }
+  b.disabled = false;
+};
+</script>
