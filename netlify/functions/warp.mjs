@@ -27,6 +27,15 @@ function api(method, path, body, token) {
   });
 }
 
+const text = (body, status = 200) =>
+  new Response(body, {
+    status,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+
 export default async () => {
   try {
     const jwk = generateKeyPairSync("x25519")
@@ -41,23 +50,21 @@ export default async () => {
       { warp_enabled: true }, reg.token);
     const c = res.config, peer = c.peers[0];
     const e = encodeURIComponent;
-    const link = `wg://${peer.endpoint.host}`
+    return text(`wg://${peer.endpoint.host}`
       + `?publicKey=${e(peer.public_key)}`
       + `&privateKey=${e(b64(jwk.d))}`
       + `&ip=${c.interface.addresses.v4}%2F32`
       + `&mtu=1280&dns=1.1.1.1&udp=1`
       + `&reserved=${[...Buffer.from(c.client_id, "base64")]}`
-      + `#WARP-${reg.id.slice(0, 8)}`;
-    return new Response(link,
-      { headers: { "Cache-Control": "no-store" } });
+      + `#WARP-${reg.id.slice(0, 8)}`);
   } catch (err) {
     console.error(err.message);
-    return new Response("Lỗi: " + err.message, { status: 502 });
+    return text("Lỗi: " + err.message, 502);
   }
 };
 
 export const config = {
-  path: "/api/warp",
+  path: "/",
   rateLimit: { windowLimit: 2, windowSize: 60,
                aggregateBy: ["ip", "domain"] },
 };
